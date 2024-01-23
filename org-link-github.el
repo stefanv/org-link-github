@@ -12,9 +12,9 @@
                 :value-type (string :tag "Full form" :doc "e.g. USERNAME/REPOSITORY")))
 
 (defun org-link-github-expand-target (target)
-  "Return full URL to issue on GitHub based on TARGET.
+  "Return full URL to issue/PR on GitHub based on TARGET.
 TARGET is a shortcut found in `org-link-github-shortcuts'
-followed by a \"#\" and an issue number."
+followed by a \"#\" and an issue or PR number."
   (if (string-match (rx (group (one-or-more any)) "/" (group (one-or-more any))
                         "#" (group (one-or-more digit)))
                     target)
