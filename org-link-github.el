@@ -1,58 +1,46 @@
-;; Allow org to understand github links
-;;
-;; Examples:
-;;
-;;  gh:scikit-image/scikit-image#1000
-;;
-;; By customizing org-gh-repo-shortcuts, you can have even shorter URLs:
-;;
-;;  gh:skimage#1000
-;;
-;; It should be an association list of shortcut-repo:
-;;
-;; (setq org-gh-repo-shortcuts
-;;      '(("skimage" . "scikit-image/scikit-image")
-;;        ("numpy" . "numpy/numpy")))
+(require 'map)
+(require 'ol)
 
-(org-link-set-parameters "gh"
-                         :follow #'org-gh-open
-                         :export #'org-gh-export)
+(defgroup org-link-github nil
+  "Easy links to GitHub repositories."
+  :group 'ol)
 
-(defcustom org-gh-repo-shortcuts nil
+(defcustom org-link-github-shortcuts nil
   "Shortcuts to org/repo recognized by org gh links."
   :group 'org-link
-  :type '(cons string string))
+  :type '(alist :key-type (string :tag "Short form")
+                :value-type (string :tag "Full form" :doc "e.g. USERNAME/REPOSITORY")))
 
-(defun org-gh-url-from-repo-issue (repo_issue)
-  (if (string-match-p (rx "/") repo_issue)
-      (let*
-          ((re (rx (group (one-or-more any)) "/" (group (one-or-more any))
-                   "#" (group (one-or-more digit))))
-           (_ (string-match re repo_issue))
-           (org (match-string 1 repo_issue))
-           (repo (match-string 2 repo_issue))
-           (nr (match-string 3 repo_issue)))
+(defun org-link-github-expand-target (target)
+  "Return full URL to issue on GitHub based on TARGET.
+TARGET is a shortcut found in `org-link-github-shortcuts'
+followed by a \"#\" and an issue number."
+  (if (string-match (rx (group (one-or-more any)) "/" (group (one-or-more any))
+                        "#" (group (one-or-more digit)))
+                    target)
+      ;; Target has both org and repo.
+      (let ((org (match-string 1 target))
+            (repo (match-string 2 target))
+            (nr (match-string 3 target)))
         (format "https://github.com/%s/%s/pull/%s" org repo nr))
-    (let*
-        ((re (rx (group (one-or-more any)) "#" (group (one-or-more digit))))
-         (_ (string-match re repo_issue))
-         (repo-shortcut (match-string 1 repo_issue))
-         (nr (match-string 2 repo_issue))
-         (org-repo (or (cdr (assoc repo-shortcut org-gh-repo-shortcuts))
-                   (error "Could not find repo %s in org-gh-repo-shortcuts" repo-shortcut)))
-         (org-and-repo (split-string org-repo "/"))
-         (org (nth 0 org-and-repo))
-         (repo (nth 1 org-and-repo)))
+    ;; Target uses a shortcut.
+    (unless (string-match (rx (group (one-or-more any)) "#" (group (one-or-more digit))) target)
+      (error "Invalid target format"))
+    (pcase-let* ((repo-shortcut (match-string 1 target))
+                 (nr (match-string 2 target))
+                 (org-repo (or (map-elt org-link-github-shortcuts repo-shortcut)
+                               (error "Could not find repo %s in org-link-github-shortcuts" repo-shortcut)))
+                 (`(,org ,repo) (split-string org-repo "/")))
       (format "https://github.com/%s/%s/pull/%s" org repo nr))))
 
-(defun org-gh-open (repo_issue _)
+(defun org-link-github-open (target _)
   "Open GitHub link to PR or issue.
-REPO_ISSUE is of the format org/repo#issue-or-pr"
-    (browse-url (org-gh-url-from-repo-issue repo_issue)))
+TARGET is of the format org/repo#issue-or-pr"
+  (browse-url (org-link-expand-target target)))
 
-(defun org-gh-export (link description format _)
-  "Export a GitHub link from org files."
-  (let ((path (org-gh-url-from-repo-issue link))
+(defun org-link-github-export (link description format _)
+  "Return a GitHub link for exporting according to LINK, DESCRIPTION, and FORMAT."
+  (let ((path (org-link-expand-target link))
         (desc (or description link)))
     (pcase format
       (`html (format "<a target=\"_blank\" href=\"%s\">%s</a>" path desc))
@@ -61,4 +49,8 @@ REPO_ISSUE is of the format org/repo#issue-or-pr"
       (`ascii (format "%s (%s)" desc path))
       (t path))))
 
-(provide 'org-gh-links)
+(org-link-set-parameters "gh"
+                         :follow #'org-link-github-open
+                         :export #'org-link-github-export)
+
+(provide 'org-link-github)
