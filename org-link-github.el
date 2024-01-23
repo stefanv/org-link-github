@@ -33,6 +33,12 @@ followed by a \"#\" and an issue or PR number."
                  (`(,org ,repo) (split-string org-repo "/")))
       (format "https://github.com/%s/%s/pull/%s" org repo nr))))
 
+(defun org-link-github-alias (target)
+  "For the given target, return `org/repo#issue-or-pr'."
+  (string-replace "https://github.com/" ""
+                  (string-replace "/pull/" "#"
+                                  (org-link-github-expand-target link))))
+
 (defun org-link-github-open (target _)
   "Open GitHub link to PR or issue.
 TARGET is of the format org/repo#issue-or-pr"
@@ -40,12 +46,13 @@ TARGET is of the format org/repo#issue-or-pr"
 
 (defun org-link-github-export (link description format _)
   "Return a GitHub link for exporting according to LINK, DESCRIPTION, and FORMAT."
-  (let ((path (org-link-github-expand-target link))
-        (desc (or description link)))
+  (let* ((path (org-link-github-expand-target link))
+         (desc (or description (org-link-github-alias link))))
     (pcase format
       (`html (format "<a target=\"_blank\" href=\"%s\">%s</a>" path desc))
       (`latex (format "\\href{%s}{%s}" path desc))
       (`texinfo (format "@uref{%s,%s}" path desc))
+      (`md (format "[%s](%s)" desc path))
       (`ascii (format "%s (%s)" desc path))
       (_ path))))
 
