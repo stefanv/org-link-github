@@ -36,11 +36,11 @@ followed by a \"#\" and an issue number."
 (defun org-link-github-open (target _)
   "Open GitHub link to PR or issue.
 TARGET is of the format org/repo#issue-or-pr"
-  (browse-url (org-link-expand-target target)))
+  (browse-url (org-link-github-expand-target target)))
 
 (defun org-link-github-export (link description format _)
   "Return a GitHub link for exporting according to LINK, DESCRIPTION, and FORMAT."
-  (let ((path (org-link-expand-target link))
+  (let ((path (org-link-github-expand-target link))
         (desc (or description link)))
     (pcase format
       (`html (format "<a target=\"_blank\" href=\"%s\">%s</a>" path desc))
