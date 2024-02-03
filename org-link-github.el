@@ -7,7 +7,7 @@
 
 (defcustom org-link-github-shortcuts nil
   "Shortcuts to org/repo recognized by org gh links."
-  :group 'org-link
+  :group 'org-link-github
   :type '(alist :key-type (string :tag "Short form")
                 :value-type (string :tag "Full form" :doc "e.g. USERNAME/REPOSITORY")))
 
