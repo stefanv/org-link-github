@@ -42,3 +42,25 @@ Either place `org-link-github.el` on your `load-path`, or add
 (unless (package-installed-p 'vc-use-package)
   (package-vc-install "https://github.com/slotThe/vc-use-package"))
 ```
+
+## Advanced usage
+
+I also provide `org-link-github-contract-url` to convert GitHub URLs
+to the short org form. Other than adding a key binding, I don't yet
+know how to better integrate this into my workflow.
+
+```lisp
+(defun stefanv/gh-paste ()
+  (interactive)
+  (insert
+   (format "[[gh:%s]]"
+           (string-trim (org-link-github-contract-url
+                         (substring-no-properties
+                          (gui-get-selection 'CLIPBOARD)))))))
+```
+
+And, in your configuration:
+
+```lisp
+(define-key org-mode-map (kbd "C-x C-g") 'stefanv/gh-paste)
+```

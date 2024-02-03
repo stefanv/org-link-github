@@ -33,11 +33,14 @@ followed by a \"#\" and an issue or PR number."
                  (`(,org ,repo) (split-string org-repo "/")))
       (format "https://github.com/%s/%s/pull/%s" org repo nr))))
 
+(defun org-link-github-contract-url (url)
+  "For a given GitHub URL, give the org short form."
+  (string-replace "https://github.com/" ""
+                  (string-replace "/pull/" "#" (string-replace "/issues/" "#" url))))
+
 (defun org-link-github-alias (target)
   "For the given target, return `org/repo#issue-or-pr'."
-  (string-replace "https://github.com/" ""
-                  (string-replace "/pull/" "#"
-                                  (org-link-github-expand-target link))))
+  (org-link-github-contract-url (org-link-github-expand-target target)))
 
 (defun org-link-github-open (target _)
   "Open GitHub link to PR or issue.
