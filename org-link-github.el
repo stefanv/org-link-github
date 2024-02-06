@@ -15,23 +15,29 @@
   "Return full URL to issue/PR on GitHub based on TARGET.
 TARGET is a shortcut found in `org-link-github-shortcuts'
 followed by a \"#\" and an issue or PR number."
-  (if (string-match (rx (group (one-or-more any)) "/" (group (one-or-more any))
-                        "#" (group (one-or-more digit)))
+  (if (string-match (rx (group (one-or-more (not "/")))
+                        "/" (group (one-or-more (not "#")))
+                        "#" (group (one-or-more digit))
+                        (optional (group "#" (zero-or-more any))))
                     target)
       ;; Target has both org and repo.
       (let ((org (match-string 1 target))
             (repo (match-string 2 target))
-            (nr (match-string 3 target)))
-        (format "https://github.com/%s/%s/pull/%s" org repo nr))
+            (nr (match-string 3 target))
+            (anchor (or (match-string 4 target) "")))
+        (format "https://github.com/%s/%s/pull/%s%s" org repo nr anchor))
     ;; Target uses a shortcut.
-    (unless (string-match (rx (group (one-or-more any)) "#" (group (one-or-more digit))) target)
+    (unless (string-match (rx (group (one-or-more (not "#")))
+                              "#" (group (one-or-more digit))
+                              (optional (group "#" (one-or-more any)))) target)
       (error "Invalid target format"))
     (pcase-let* ((repo-shortcut (match-string 1 target))
                  (nr (match-string 2 target))
+                 (anchor (or (match-string 3 target) ""))
                  (org-repo (or (map-elt org-link-github-shortcuts repo-shortcut)
                                (error "Could not find repo %s in org-link-github-shortcuts" repo-shortcut)))
                  (`(,org ,repo) (split-string org-repo "/")))
-      (format "https://github.com/%s/%s/pull/%s" org repo nr))))
+      (format "https://github.com/%s/%s/pull/%s%s" org repo nr anchor))))
 
 (defun org-link-github-contract-url (url)
   "For a given GitHub URL, give the org short form."
