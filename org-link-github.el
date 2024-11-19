@@ -65,8 +65,4 @@ TARGET is of the format org/repo#issue-or-pr"
       (`ascii (format "%s (%s)" desc path))
       (_ path))))
 
-(org-link-set-parameters "gh"
-                         :follow #'org-link-github-open
-                         :export #'org-link-github-export)
-
 (provide 'org-link-github)

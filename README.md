@@ -29,8 +29,12 @@ gh:skimage#1000
 ```lisp
 (use-package org-link-github
   :vc (:fetcher github :repo stefanv/org-link-github)
+  :commands (org-link-github-open org-link-github-export)
   :custom (org-link-github-shortcuts '(("skimage" . "scikit-image/scikit-image")
-                                       ("numpy" . "numpy/numpy"))))
+                                       ("numpy" . "numpy/numpy")))
+  :init (org-link-set-parameters "gh"
+          :follow #'org-link-github-open
+          :export #'org-link-github-export))
 ```
 
 ### Emacs <29
@@ -46,8 +50,7 @@ Either place `org-link-github.el` on your `load-path`, or add
 ## Advanced usage
 
 I also provide `org-link-github-contract-url` to convert GitHub URLs
-to the short org form. Other than adding a key binding, I don't yet
-know how to better integrate this into my workflow.
+to the short org form. You can paste URLs to `gh:...` links as follows:
 
 ```lisp
 (defun stefanv/gh-paste ()
@@ -59,7 +62,7 @@ know how to better integrate this into my workflow.
                           (gui-get-selection 'CLIPBOARD)))))))
 ```
 
-And, in your configuration:
+With, e.g., a key binding:
 
 ```lisp
 (define-key org-mode-map (kbd "C-x C-g") 'stefanv/gh-paste)
