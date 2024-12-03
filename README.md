@@ -65,5 +65,11 @@ to the short org form. You can paste URLs to `gh:...` links as follows:
 With, e.g., a key binding:
 
 ```lisp
-(define-key org-mode-map (kbd "C-x C-g") 'stefanv/gh-paste)
+(use-package org-link-github
+    :commands (org-link-github-contract-url ...)
+
+    ...
+
+    :init
+    (define-key org-mode-map (kbd "C-x C-g") 'stefanv/gh-paste))
 ```
