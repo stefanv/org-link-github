@@ -2,6 +2,8 @@
 
 Add GitHub links to org-mode (see [External links](https://orgmode.org/guide/Hyperlinks.html#External-Links-1)).
 
+See also [Descriptive links](#descriptive-links) below.
+
 ## Examples
 
 ```
@@ -72,4 +74,48 @@ With, e.g., a key binding:
 
     :init
     (define-key org-mode-map (kbd "C-x C-g") 'stefanv/gh-paste))
+```
+
+## Descriptive Links
+
+Nowadays, I find myself preferring links that contain the title of the PR / issue. I.e., a link that looks like:
+
+```
+reponame#123 · PR title goes here
+```
+
+For that, I use:
+
+```lisp
+  (defun stefanv/gh-paste-link-with-description ()
+    "Insert Org link and reformat to 'repo#prnum · title'."
+    (interactive)
+    (org-web-tools-insert-link-for-url (org-web-tools--get-first-url))
+    (save-excursion
+      (let* ((link-data (org-element-context))
+             (raw-link (org-element-property :raw-link link-data))
+             (old-desc (org-element-property :contents-begin link-data)))
+        (when old-desc
+          (let* ((desc (buffer-substring-no-properties
+                        (org-element-property :contents-begin link-data)
+                        (org-element-property :contents-end link-data)))
+                 (new-desc (replace-regexp-in-string
+                             "^\\(.*?\\) · .*?/\\(.*\\)$" "\\2 · \\1"  ; Swap desc and user/repo#nr, remove user/
+                             (replace-regexp-in-string
+                               " by [^·]+ · " " · "  ; Remove "by username" part
+                               (replace-regexp-in-string
+                                 "\\(?:Pull Request\\|Issue\\) #\\([0-9]+\\) · \\(.*?\\) · GitHub"
+                                 "\\2#\\1" desc)))))
+            (when (string-match-p "\\(?:Pull Request\\|Issue\\) #" desc)
+              (delete-region (org-element-property :begin link-data)
+                             (org-element-property :end link-data))
+              (insert (format "[[%s][%s]]" raw-link new-desc))))))))
+```
+
+Note that this requires the `org-web-tools` package:
+
+```lisp
+(use-package org-web-tools
+  :commands org-web-tools-insert-link-for-url
+  :after org)
 ```
