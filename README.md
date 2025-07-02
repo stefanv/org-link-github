@@ -76,7 +76,7 @@ With, e.g., a key binding:
     (define-key org-mode-map (kbd "C-x C-g") 'stefanv/gh-paste))
 ```
 
-## Descriptive Links
+## Descriptive links
 
 Nowadays, I find myself preferring links that contain the title of the PR / issue. I.e., a link that looks like:
 
